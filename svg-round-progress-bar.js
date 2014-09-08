@@ -1,41 +1,26 @@
 $(function() {
   var makeSVGRoundProgressBar = function($this) {
-    var   progress = $this.attr("data-progress")
+    var   progress = $this.attr("data-progress") ? parseInt($this.attr("data-progress")) : 0
         , gradientStart = $this.attr("data-progress-gradient-start")
         , gradientStop = $this.attr("data-progress-gradient-stop")
         , background = $this.attr("data-progress-background")
-        , strokeWidth = parseInt($this.attr("data-progress-stroke-width"))
-        , size = parseInt($this.attr("data-progress-size"));
+        , strokeWidth = $this.attr("data-progress-stroke-width") ? parseInt($this.attr("data-progress-stroke-width")) : 5
+        , size = $this.attr("data-progress-size") ? parseInt($this.attr("data-progress-size")) : 0;
 
     var progressID = "progress-bar-" + Math.round(Math.random() * 10000);
 
     // Calculate Size
-    if (progress > 99.9999) {
-      progress = 99.9999;
-    } else if (progress < 0) {
-      progress = 0;
-    }
+    progress = progress > 99.9999 ? 99.9999 : progress;
+    progress = progress < 0 ? 0 : progress;
 
-    var degrees = ((progress / 100) * 360) - 90;
-
-    var radians = (Math.PI * degrees) / 180;
-
-    var offsetX = size / 2;
-    var offsetY = strokeWidth;
-    var radius = (size / 2) - strokeWidth;
-
-    var x = Math.cos(radians) * radius + offsetX;
-    var y = Math.sin(radians) * radius + (radius + offsetY);
-
-    var arc = 0;
-
-    if (progress > 50) {
-      // Large Arc
-      arc = 1;
-    } else {
-      // Small Arc
-      arc = 0;
-    }
+    var   degrees = ((progress / 100) * 360) - 90
+        , radians = (Math.PI * degrees) / 180
+        , radius = (size / 2) - strokeWidth
+        , offsetY = strokeWidth
+        , offsetX = size / 2
+        , y = Math.sin(radians) * radius + (radius + offsetY)
+        , x = Math.cos(radians) * radius + offsetX
+        , arc = progress > 50 ? 1 : 0;
 
     var path = [
       "M " + offsetX + ", " + offsetY,
@@ -56,7 +41,8 @@ $(function() {
     } else if (background) {
       svgTemplate.push('<path id="',progressID,'" d="',path,'" fill="none" stroke="',background,'" stroke-width="',strokeWidth,'" />');
     } else {
-      svgTemplate.push('<path id="',progressID,'" d="',path,'" fill="none" stroke="url(#',progressID,'-gradient)" stroke-width="',strokeWidth,'" />');
+      background = ["rgb(",Math.round(Math.random()*255),",",Math.round(Math.random()*255),",",Math.round(Math.random()*255),")"].join("");
+      svgTemplate.push('<path id="',progressID,'" d="',path,'" fill="none" stroke="',background,'" stroke-width="',strokeWidth,'" />');
     }
 
     svgTemplate.push('</svg>');
@@ -67,11 +53,12 @@ $(function() {
     var   $circle = $this.find("#" + progressID)
         , pathSize = $circle[0].getTotalLength();
 
-    $circle.css("stroke-dasharray",pathSize);
+    $circle.css("transition","stroke-dashoffset 1s ease-in-out");
     $circle.css("stroke-dashoffset",pathSize);
+    $circle.css("stroke-dasharray",pathSize);
 
+    // Apply the Stroke Dashoffset asynchronously to trigger CSS Animation.
     setTimeout(function() {
-      $circle.css("transition","stroke-dashoffset 1s ease-in-out");
       $circle.css("stroke-dashoffset",0);
     },0);
   };
